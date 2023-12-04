@@ -63,7 +63,7 @@ class Player(pygame.sprite.Sprite):                                           #T
     ANIMATION_DELAY = 3                                                       #CG: The length of time it takes for the frame of a sprite to change
 
     def __init__(self, x, y, width, height):                #TD: This is the first function that gets initialized once the game begins CG: self is used for all functions under the class player to refer to functions and variables only accessible by the player class
-        super().__init__()
+        super().__init__()                                  #CG: This initializes the parent class
         self.rect = pygame.Rect(x, y, width, height)        #TD: This is the player's rectangle hitbox, lots of built-in Pygame functions are being used
         self.x_vel = 0                                      #TD: Speed in the x direction per frame
         self.y_vel = 0                                      #TD: Speed in the y direction per frame
@@ -145,33 +145,33 @@ class Player(pygame.sprite.Sprite):                                           #T
         self.animation_count += 1
         self.update()
 
-    def update(self):
-        self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))
-        self.mask = pygame.mask.from_surface(self.sprite)
+    def update(self):                                                       #CG: Updates rectangle that is the player depending on the sprite that is currently being displayed
+        self.rect = self.sprite.get_rect(topleft=(self.rect.x, self.rect.y))#CG: If the sprite is slightly larger or smaller this will update the rectangle that is acting as the player's hitbox
+        self.mask = pygame.mask.from_surface(self.sprite)                   #CG: Mask is a map of every pixel in the sprite and with this, it will allow pixel collision instead of collision with the entirety of the player rectangle
 
     def draw(self, win, offset_x):                                          #CG: Will draw all visual changes
-        win.blit(self.sprite, (self.rect.x - offset_x, self.rect.y)) 
+        win.blit(self.sprite, (self.rect.x - offset_x, self.rect.y))        #CG: Will draw the sprites as they are updated
 
 
-class Object(pygame.sprite.Sprite):
+class Object(pygame.sprite.Sprite):                                         #CG: Object class used to define dimensions and properties of objects to be later used to allow player collision
     def __init__(self, x, y, width, height, name=None):
-        super().__init__()
-        self.rect = pygame.Rect(x, y, width, height)
-        self.image = pygame.Surface((width, height), pygame.SRCALPHA)
-        self.width = width
-        self.height = height
-        self.name = name
+        super().__init__()                                                  #CG: This initializes the parent class
+        self.rect = pygame.Rect(x, y, width, height)                        #CG: Used to define the rectangle of space the object will take up
+        self.image = pygame.Surface((width, height), pygame.SRCALPHA)       #CG: Makes the surface the sprites will be loaded on transparent
+        self.width = width                                                  #CG: declares the width of the object
+        self.height = height                                                #CG: declares the height of the object
+        self.name = name                                                    #CG: declares the name of the object to be called
 
-    def draw(self, win, offset_x):
+    def draw(self, win, offset_x):                                          #CG: This function will draw the objects in the game and will change them when the screen scrolls or the players changes position
         win.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
 
-class Block(Object):
+class Block(Object):                                                        #CG: Class for the blocks/terrain the player will stand on using the properties from the object class above
     def __init__(self, x, y, size):
-        super().__init__(x, y, size, size)
-        block = get_block(size)
-        self.image.blit(block, (0, 0))
-        self.mask = pygame.mask.from_surface(self.image)
+        super().__init__(x, y, size, size)                                  #CG: Initializes parent class. Uses size twice to make the block a square
+        block = get_block(size)                                             #CG: Will get a block of whatever size is inputted
+        self.image.blit(block, (0, 0))                                      #CG: Will put the block at the top left of the image we are displaying our block on
+        self.mask = pygame.mask.from_surface(self.image)                    #CG: Also for pixel perfect collision on the block
 
 
 class Fire(Object):
@@ -216,7 +216,7 @@ def get_background(name):                                           #TD: Backgro
             tiles.append(pos)                                       #TD: inserts the number of tiles needed from the position calculation variable
 
     return tiles, image                                             #TD: now we can use the image and tiles outside of the function
-                                                                    #TD: In summary, the function will take a background image from my computers memory and divides it into tiles. The function will also calculate the position of these tiles in order to be used later on
+                                                                    #TD: In summary, the function will take a background image from my computers memory and divides it into tiles. The function will also calculate the position of these tiles to be used later on
 
 def draw(window, background, bg_image, player, objects, offset_x):  #CG: This function will draw the background onto the game screen in combination with the get_background function and draw the player
     for tile in background:                                         #TD: loops through the background and gets a number of tiles per background
