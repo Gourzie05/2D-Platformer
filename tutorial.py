@@ -141,7 +141,7 @@ class Player(pygame.sprite.Sprite):                                           #T
         sprites = self.SPRITES[sprite_sheet_name]                           #CG: Possible sprites in a given sprite sheet 
         sprite_index = (self.animation_count //
                         self.ANIMATION_DELAY) % len(sprites)                #CG: Will change which sprite is being shown by iterating through the index of sprites at the rate of animation_delay and dividing by the number of animation frames in the sprite sheet to cycle through the animation
-        self.sprite = sprites[sprite_index]                                 #CG: The next three lines update and call the given index of the given sprite sheet at a given time while constantly changing animation count to allow a change in sprite index
+        self.sprite = sprites[sprite_index]                                 #CG: The next three lines update and call the given index of the given sprite sheet at a given time while constantly changing the animation count to allow a change in the sprite index and updating it
         self.animation_count += 1
         self.update()
 
@@ -174,24 +174,24 @@ class Block(Object):                                                        #CG:
         self.mask = pygame.mask.from_surface(self.image)                    #CG: Also for pixel perfect collision on the block
 
 
-class Fire(Object):
-    ANIMATION_DELAY = 3
+class Fire(Object):                                                         #CG: This class will act as an obstacle for the player
+    ANIMATION_DELAY = 3                                                     #CG determines how long it takes for the animation to cycle
 
     def __init__(self, x, y, width, height):
-        super().__init__(x, y, width, height, "fire")
-        self.fire = load_sprite_sheets("Traps", "Fire", width, height)
-        self.image = self.fire["off"][0]
-        self.mask = pygame.mask.from_surface(self.image)
-        self.animation_count = 0
-        self.animation_name = "off"
+        super().__init__(x, y, width, height, "fire")                       #CG: Initializes parent class
+        self.fire = load_sprite_sheets("Traps", "Fire", width, height)      #CG: Loads images for the traps
+        self.image = self.fire["off"][0]                                    #CG: Fire starts as off
+        self.mask = pygame.mask.from_surface(self.image)                    #CG: Creates pixel-perfect collision between the player and trap
+        self.animation_count = 0                                            #CG: Starts at the beginning of the animation
+        self.animation_name = "off"                                         #CG: Names starting animation as off. This will later be used to only hit players if fire is "on"
 
-    def on(self):
+    def on(self):                                                           #CG: On and off function used to determine animations and property of the fire at a specific instance
         self.animation_name = "on"
 
     def off(self):
         self.animation_name = "off"
 
-    def loop(self):
+    def loop(self):                                                           #CG: This function is used to animate frames. I will give general commenting as step-by-step commenting is the same as the player update sprite function. In general, this function divides sprite sheets into images and iterates through them at a given rate
         sprites = self.fire[self.animation_name]
         sprite_index = (self.animation_count //
                         self.ANIMATION_DELAY) % len(sprites)
@@ -201,7 +201,7 @@ class Fire(Object):
         self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
         self.mask = pygame.mask.from_surface(self.image)
 
-        if self.animation_count // self.ANIMATION_DELAY > len(sprites):
+        if self.animation_count // self.ANIMATION_DELAY > len(sprites):        #CG: Resets animation count after it gets longer than the length of the sprites so the number does not get too large and cause lag on the computer
             self.animation_count = 0
 
 
@@ -246,17 +246,17 @@ def handle_vertical_collision(player, objects, dy):                 #CG: Functio
     return collided_objects                                         #CG: Return which objects were collided with
 
 
-def collide(player, objects, dx):
-    player.move(dx, 0)
+def collide(player, objects, dx):                                   #CG: Function that handles horizontal collision
+    player.move(dx, 0)                                              #CG: These two lines check if it is colliding horizontally and update the player rectangle and mask 
     player.update()
     collided_object = None
     for obj in objects:
-        if pygame.sprite.collide_mask(player, obj):
+        if pygame.sprite.collide_mask(player, obj):                #CG: Using updated masks checks if there is a horizontal collision and if not break out of the loop
             collided_object = obj
             break
 
-    player.move(-dx, 0)
-    player.update()
+    player.move(-dx, 0)                                            #CG: If it is colliding with the updated mask it will move the player back the exact amount it moves forward to simulate the appearance of stopping
+    player.update()                                                #CG: It will then update the player mask and rectangle and return what objects are being collided with and what happens if there is collision   
     return collided_object
 
 
@@ -264,8 +264,8 @@ def handle_move(player, objects):                              #CG: This functio
     keys = pygame.key.get_pressed()                            #CG: A built-in function that checks which keys are being pressed
 
     player.x_vel = 0                                           #CG: Must set velocity to initial of 0 so that the x velocity isn't permanently set to the direction you move in and will be reset to zero so you stop moving when a key is not being pressed
-    collide_left = collide(player, objects, -PLAYER_VEL * 2)
-    collide_right = collide(player, objects, PLAYER_VEL * 2)
+    collide_left = collide(player, objects, -PLAYER_VEL * 2)   #CG: Checks if it is being collided with on the left and moves them to the right at the same rate as they are moving left
+    collide_right = collide(player, objects, PLAYER_VEL * 2)   #CG: Checks if it is being collided with on the right and moves them to the left at the same rate as they are moving right
 
     if keys[pygame.K_LEFT] and not collide_left:               #CG: checks if the left arrow keys are being pressed and that the player is not currently colliding with anything to the left of it
         player.move_left(PLAYER_VEL)                           #CG: If true makes the character move to the left at the speed previously chosen by Player_vel
@@ -287,12 +287,12 @@ def main(window):                                       #TD: Main code for the a
     block_size = 96                                     #CG: This is the standard size for all of the blocks
 
     player = Player(100, 100, 50, 50)                   #CG: Creates a basic block character with given x and y coordinates and width and height
-    fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
-    fire.on()
-    floor = [Block(i * block_size, HEIGHT - block_size, block_size)    
+    fire = Fire(100, HEIGHT - block_size - 64, 16, 32)  #CG: Creates an obstacle for the player
+    fire.on()                                           #CG: For this case, fire will always be on but can be turned off and on if we wanted using previous functions
+    floor = [Block(i * block_size, HEIGHT - block_size, block_size)          #CG: This will draw as many blocks to fill two times the length of the screen with blocks 
              for i in range(-WIDTH // block_size, (WIDTH * 2) // block_size)]
-    objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size),
-               Block(block_size * 3, HEIGHT - block_size * 4, block_size), fire]
+    objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size),        #CG:Creates  a block on top of the floor  
+               Block(block_size * 3, HEIGHT - block_size * 4, block_size), fire] #CG: Creates a block in the air
 
     offset_x = 0                                                          #CG: Variable that will be altered to allow scrolling objects and players: This variable affects the draw function of every class as I will not be adding a comment about offset per class
     scroll_area_width = 200                                               #CG: Variable used to determine how far from the edge of the screen the player has to be before the screen scrolls
