@@ -117,22 +117,22 @@ class Player(pygame.sprite.Sprite):                                           #T
     def landed(self):                                                       #CG: Function that handles the players' properties when landed
         self.fall_count = 0                                                 #CG: This erases any accumulated gravity once the player has landed
         self.y_vel = 0                                                      #CG. Sets the player's y velocity to zero so they do not keep falling 
-        self.jump_count = 0                                                 #CG: Resets the players jump count so they can jump 
+        self.jump_count = 0                                                 #CG: Resets the player's jump count so they can jump 
 
-    def hit_head(self):
-        self.count = 0
-        self.y_vel *= -1
+    def hit_head(self):                                                     #CG: A function that handles players' properties when hitting the undersides of objects
+        self.count = 0                                                      
+        self.y_vel *= -1                                                    #CG: This will push the player off the bottom of the block allowing them to begin falling again
 
     def update_sprite(self):                                                #CG: This function will change what sprite is appearing by calling different images from the sprite dictionary depending on the player's current position or action
         sprite_sheet = "idle"                                               #CG: If the player is not moving or doing anything it will call a frame of the idle sprite sheet
         if self.hit:                                                        #CG: If the player is hit it will call a frame of the hit sprite sheet
             sprite_sheet = "hit" 
-        elif self.y_vel < 0:
-            if self.jump_count == 1:
+        elif self.y_vel < 0:                                                #CG: Checks if the player is going upwards
+            if self.jump_count == 1:                                        #CG: If the player is accelerating upwards and it is the first jump display the frames from the jump sprite sheet
                 sprite_sheet = "jump"
-            elif self.jump_count == 2:
+            elif self.jump_count == 2:                                      #CG: If the player is accelerating upwards and it is the second jump display the frames from the double jump sprite sheet    
                 sprite_sheet = "double_jump"
-        elif self.y_vel > self.GRAVITY * 2:
+        elif self.y_vel > self.GRAVITY * 2:                                 #CG If the player is accelerating downwards display a falling sprite. The reason it has to be accelerating downwards faster than gravity is because gravity is always being applied so fall would always be displayed so instead a significant amount of downwards acceleration must be accumulated before the fall sprite is displayed
             sprite_sheet = "fall"
         elif self.x_vel != 0:                                               #CG: If the player is moving meaning it has a velocity greater or less than zero it will call a frame of the run sprite sheet
             sprite_sheet = "run"
@@ -162,7 +162,7 @@ class Object(pygame.sprite.Sprite):                                         #CG:
         self.height = height                                                #CG: declares the height of the object
         self.name = name                                                    #CG: declares the name of the object to be called
 
-    def draw(self, win, offset_x):                                          #CG: This function will draw the objects in the game and will change them when the screen scrolls or the players changes position
+    def draw(self, win, offset_x):                                          #CG: This function will draw the objects in the game and will change them when the screen scrolls or the players change position
         win.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
 
@@ -230,20 +230,20 @@ def draw(window, background, bg_image, player, objects, offset_x):  #CG: This fu
     pygame.display.update()                                         #CG: This updates the screen at every frame and will reload the images each frame so old drawings don't stay on the screen
 
 
-def handle_vertical_collision(player, objects, dy):
-    collided_objects = []
-    for obj in objects:
-        if pygame.sprite.collide_mask(player, obj):
-            if dy > 0:
-                player.rect.bottom = obj.rect.top
+def handle_vertical_collision(player, objects, dy):                 #CG: Function that handles vertical collision
+    collided_objects = []                                           #CG: Empty list of blocks being collided with vertically
+    for obj in objects:    
+        if pygame.sprite.collide_mask(player, obj):                 #CG: Using mask properties allows for pixel-perfect collisions
+            if dy > 0:                                              #CG: The next three line says if the player is accelerating downward when colliding to place the bottom of the player model to the top of the object and to call the properties of the land function
+                player.rect.bottom = obj.rect.top    
                 player.landed()
-            elif dy < 0:
+            elif dy < 0:                                            #CG: The next three line says if the player is accelerating upward when colliding to place the top of the player model to the bottom of the object and to call the properties of the hit head function
                 player.rect.top = obj.rect.bottom
                 player.hit_head()
 
-            collided_objects.append(obj)
+            collided_objects.append(obj)                            #CG: Add all collided objects to the list 
 
-    return collided_objects
+    return collided_objects                                         #CG: Return which objects were collided with
 
 
 def collide(player, objects, dx):
@@ -261,7 +261,7 @@ def collide(player, objects, dx):
 
 
 def handle_move(player, objects):                              #CG: This function will change the coordinates of the player based on the keys pressed
-    keys = pygame.key.get_pressed()                            #CG: built-in function that checks which keys are being pressed
+    keys = pygame.key.get_pressed()                            #CG: A built-in function that checks which keys are being pressed
 
     player.x_vel = 0                                           #CG: Must set velocity to initial of 0 so that the x velocity isn't permanently set to the direction you move in and will be reset to zero so you stop moving when a key is not being pressed
     collide_left = collide(player, objects, -PLAYER_VEL * 2)
@@ -272,8 +272,8 @@ def handle_move(player, objects):                              #CG: This functio
     if keys[pygame.K_RIGHT] and not collide_right:             #CG: checks if the right arrow keys are being pressed and that the player is not currently colliding with anything to the right of it
         player.move_right(PLAYER_VEL)                          #CG: If true makes the character move to the right at the speed previously chosen by Player_vel
 
-    vertical_collide = handle_vertical_collision(player, objects, player.y_vel)
-    to_check = [collide_left, collide_right, *vertical_collide]
+    vertical_collide = handle_vertical_collision(player, objects, player.y_vel) #CG: Calls vertical collision to be used in another variable
+    to_check = [collide_left, collide_right, *vertical_collide]                 #CG: This is a master list of all three collision functions so that the handle move function knows how to alter player position based on collision            
 
     for obj in to_check:
         if obj and obj.name == "fire":
@@ -284,18 +284,18 @@ def main(window):                                       #TD: Main code for the a
     clock = pygame.time.Clock()                         #CG: regulates how fast the game will run
     background, bg_image = get_background("Gray.png")   #CG: Will call background based on asset name in this case we use the gray background
 
-    block_size = 96
+    block_size = 96                                     #CG: This is the standard size for all of the blocks
 
-    player = Player(100, 100, 50, 50)                   #CG: Creates a basic block character with given c and y coordinates and width and height
+    player = Player(100, 100, 50, 50)                   #CG: Creates a basic block character with given x and y coordinates and width and height
     fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
     fire.on()
-    floor = [Block(i * block_size, HEIGHT - block_size, block_size)
+    floor = [Block(i * block_size, HEIGHT - block_size, block_size)    
              for i in range(-WIDTH // block_size, (WIDTH * 2) // block_size)]
     objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size),
                Block(block_size * 3, HEIGHT - block_size * 4, block_size), fire]
 
-    offset_x = 0
-    scroll_area_width = 200
+    offset_x = 0                                                          #CG: Variable that will be altered to allow scrolling objects and players: This variable affects the draw function of every class as I will not be adding a comment about offset per class
+    scroll_area_width = 200                                               #CG: Variable used to determine how far from the edge of the screen the player has to be before the screen scrolls
 
     run = True
     while run:
@@ -306,8 +306,8 @@ def main(window):                                       #TD: Main code for the a
                 run = False
                 break                                                      #CG: Break is used to exit the loop as soon as run=False so that the computer does not keep checking for pygame.Quit
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and player.jump_count < 2:
+            if event.type == pygame.KEYDOWN:                               #CG: Checks if a key was pressed
+                if event.key == pygame.K_SPACE and player.jump_count < 2:  #CG: IF the space bar is pressed and the player has performed less than two jumps execute the jump function
                     player.jump()
 
         player.loop(FPS)                                                   #CG: Need to call the loop function as it is what moves the player and it is set to refresh and move the character at the same rate as our declared framerate of 60
@@ -315,7 +315,7 @@ def main(window):                                       #TD: Main code for the a
         handle_move(player, objects)                                       #CG: This will call the movement function and apply it to the character and objects
         draw(window, background, bg_image, player, objects, offset_x)      #CG: This line will call the draw function and will display the objects, background and character in the game
 
-        if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
+        if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (        #CG: This if statement says that if the player is moving right and is the scroll area width from the right or if the player is moving left and is the scroll area width from the left to make the offset value equal to the players x velocity which will create scrolling effect
                 (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
 
