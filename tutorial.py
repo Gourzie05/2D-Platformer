@@ -47,13 +47,13 @@ def load_sprite_sheets(dir1, dir2, width, height, direction=False):            #
     return all_sprites                                                         #CG: Allows all sprites that have been stripped and chopped up to now be called and applied to whatever object requires a sprite in the game 
 
 
-def get_block(size):
-    path = join(PATH, "Terrain", "Terrain.png")
-    image = pygame.image.load(path).convert_alpha()
-    surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)
-    rect = pygame.Rect(96, 0, size, size)
-    surface.blit(image, (0, 0), rect)
-    return pygame.transform.scale2x(surface)
+def get_block(size):                                                           #CG: A function that will create blocks to be called in other functions
+    path = join(PATH, "Terrain", "Terrain.png")                                #CG: Creates a path to the sprite sheet for terrain
+    image = pygame.image.load(path).convert_alpha()                            #CG: Using the path loads the sprites from terrain file
+    surface = pygame.Surface((size, size), pygame.SRCALPHA, 32)                #CG: Creates a transparent surface for the image to be applied to 
+    rect = pygame.Rect(96, 0, size, size)                                      #CG: Creates the rectangular hitbox the blocks will be using 
+    surface.blit(image, (0, 0), rect)                                          #CG: Pastes the image onto the surface and onto the rectangular hitbox of the block
+    return pygame.transform.scale2x(surface)                                   #CG: Returns the block with its graphics and hitbox while also scaling it up by a factor of two 
 
 
 class Player(pygame.sprite.Sprite):                                           #TD: We are using the built-in pygame Sprite Class to animate and move our character. CG: We use a class to define the player so that a multitude of functions can be called upon while interacting with the player
@@ -67,19 +67,19 @@ class Player(pygame.sprite.Sprite):                                           #T
         self.rect = pygame.Rect(x, y, width, height)        #TD: This is the player's rectangle hitbox, lots of built-in Pygame functions are being used
         self.x_vel = 0                                      #TD: Speed in the x direction per frame
         self.y_vel = 0                                      #TD: Speed in the y direction per frame
-        self.mask = None                                    #TD: 
+        self.mask = None                                    
         self.direction = "left"                             #TD: When the game gets initialized, the character's direction begins by facing the left
         self.animation_count = 0                            #TD: When the game gets initialized, the character's animation count begins at 0
         self.fall_count = 0                                 #TD: When the game begins, the fall count starts at zero CG: is a variable set to track how long the character has been falling
-        self.jump_count = 0                                 #TD: When the game begins, the jump count is also zero  
+        self.jump_count = 0                                 #CG: Jump count starts at zero to allow the player to jump when the game first begins
         self.hit = False                                    #TD: When the game starts the character is NOT being hit
         self.hit_count = 0                                  #TD: When the game starts the character hit count is at zero
 
-    def jump(self):                                         
-        self.y_vel = -self.GRAVITY * 8
-        self.animation_count = 0
-        self.jump_count += 1
-        if self.jump_count == 1:
+    def jump(self):                                         #CG: Function that will alter the player's coordinates to jump
+        self.y_vel = -self.GRAVITY * 8                      #CG: This will change the player y velocity. The reason it is negative and a multiple of gravity is to make the character jump upward and to make sure the velocity is changed by enough to not be instantly dragged down by gravity
+        self.animation_count = 0                            #CG: This will restart the character's animation frame
+        self.jump_count += 1                                #CG: When jumping increase jump count this will be later used to allow double jumps but nothing more than that
+        if self.jump_count == 1:                            #CG: These two lines say that if it is the player's first jump then erase all accumulated extra gravity but the accumulated gravity will affect the second jump
             self.fall_count = 0
 
     def move(self, dx, dy):
@@ -91,15 +91,15 @@ class Player(pygame.sprite.Sprite):                                           #T
 
     def move_left(self, vel):
         self.x_vel = -vel                                   #TD: Some Physics, essentially a left movement is a negative velocity movement CG: it is negative because you must subtract from the x and y coordinates of the player to move them left
-        if self.direction != "left":
+        if self.direction != "left":                        #CG: Tells the computer which version of the sprite it should pull
             self.direction = "left"
-            self.animation_count = 0
+            self.animation_count = 0                        #CG: Resets the player's animation
 
     def move_right(self, vel):
         self.x_vel = vel                                    #TD: Movement in the right is positive velocity
-        if self.direction != "right":
+        if self.direction != "right":                       #CG: Tells the computer which version of the sprite it should pull
             self.direction = "right"
-            self.animation_count = 0
+            self.animation_count = 0                        #CG: Resets the player's animation
 
     def loop(self, fps):                                                    #CG: Will be called every frame and will check which direction the player is facing and update the animation accordingly as well as move the player
         self.y_vel += min(1, (self.fall_count / fps) * self.GRAVITY)        #CG: This will make the player be affected by gravity. It works by making the player fall at the specified unit of gravity which is 1 but will increase the speed at which you fall depending on how long you are falling. This is done by dividing fall_count by fps to track how many seconds character has been falling and the adding additional acceleration downwards
@@ -114,10 +114,10 @@ class Player(pygame.sprite.Sprite):                                           #T
         self.fall_count += 1                                                #CG: This will make you fall permanently unless you are colliding with an object simulating gravity in the game
         self.update_sprite()                                                #CG: Will update sprite needed and draw function will display needed sprite
 
-    def landed(self):
-        self.fall_count = 0
-        self.y_vel = 0
-        self.jump_count = 0
+    def landed(self):                                                       #CG: Function that handles the players' properties when landed
+        self.fall_count = 0                                                 #CG: This erases any accumulated gravity once the player has landed
+        self.y_vel = 0                                                      #CG. Sets the player's y velocity to zero so they do not keep falling 
+        self.jump_count = 0                                                 #CG: Resets the players jump count so they can jump 
 
     def hit_head(self):
         self.count = 0
