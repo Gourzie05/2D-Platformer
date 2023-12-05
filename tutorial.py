@@ -86,7 +86,7 @@ class Player(pygame.sprite.Sprite):                                           #T
         self.rect.x += dx                                   #TD: Some calculus, basically adding a change in the X direction
         self.rect.y += dy                                   #TD: Adding Some change in the Y direction
 
-    def make_hit(self):
+    def make_hit(self):                                     #Function determines if player has hit fire object                      
         self.hit = True
 
     def move_left(self, vel):
@@ -105,7 +105,7 @@ class Player(pygame.sprite.Sprite):                                           #T
         self.y_vel += min(1, (self.fall_count / fps) * self.GRAVITY)        #CG: This will make the player be affected by gravity. It works by making the player fall at the specified unit of gravity which is 1 but will increase the speed at which you fall depending on how long you are falling. This is done by dividing fall_count by fps to track how many seconds character has been falling and the adding additional acceleration downwards
         self.move(self.x_vel, self.y_vel)                                   #CG: This will move the character left and right if the variables are changed
 
-        if self.hit:
+        if self.hit:                                                        #CG: These five lines start your hit animation when hit and then after two seconds turn off your hit animation and you return to normal state
             self.hit_count += 1
         if self.hit_count > fps * 2:
             self.hit = False
@@ -275,7 +275,7 @@ def handle_move(player, objects):                              #CG: This functio
     vertical_collide = handle_vertical_collision(player, objects, player.y_vel) #CG: Calls vertical collision to be used in another variable
     to_check = [collide_left, collide_right, *vertical_collide]                 #CG: This is a master list of all three collision functions so that the handle move function knows how to alter player position based on collision            
 
-    for obj in to_check:
+    for obj in to_check:                                                        #CG This for loop checks through the list of every object you are colliding with and if one of those objects is the fire object then it will execute the being hit animation 
         if obj and obj.name == "fire":
             player.make_hit()
 
@@ -311,7 +311,7 @@ def main(window):                                       #TD: Main code for the a
                     player.jump()
 
         player.loop(FPS)                                                   #CG: Need to call the loop function as it is what moves the player and it is set to refresh and move the character at the same rate as our declared framerate of 60
-        fire.loop()
+        fire.loop()                                                        #CG: Illustrates loop for fire animation
         handle_move(player, objects)                                       #CG: This will call the movement function and apply it to the character and objects
         draw(window, background, bg_image, player, objects, offset_x)      #CG: This line will call the draw function and will display the objects, background and character in the game
 
